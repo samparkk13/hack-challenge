@@ -1,0 +1,7 @@
+version: '3'
+
+services:
+  demo:
+    image: samparkk13/hackchallenge
+    ports: 
+      - "8000:5000"

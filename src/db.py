@@ -1,69 +1,72 @@
-from multiprocessing.sharedctypes import Value
 from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
-
-
-class Post(db.Model):
-    """
-    Posts Class
-    """
-    __tablename__ = "posts"
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String, nullable=False)
-    dueDate = db.Column(db.String, nullable=False)
-    category = db.Column(db.String, nullable=False)
-    finished = db.Column(db.Boolean, nullable=False)
-
-    def __init__(self, **kwargs):
-        """
-        Initialize a post
-        """
-        self.id = kwargs.get("id")
-        self.title = kwargs.get("title")
-        self.finished = kwargs.get("finished", False)
-        self.dueDate = kwargs.get("dueDate", "00/00/0000")
-        self.category = kwargs.get("category")
-
-    def serialize(self):
-        """
-        Serialize a post
-        """
-        return {
-            "id": self.id,
-            "title": self.title,
-            "finished": self.finished,
-            "dueDate": self.dueDate,
-            "category": self.category,
-        }
-
 
 class Category(db.Model):
     """
     Category Class
     """
 
-    __tablename__ = "category"
+    __tablename__ = "categories"
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    finished = db.Column(db.Boolean, nullable=False)
-    task_id = db.Column(db.Integer, db.ForeignKey("task.id"), nullable=False)
+    title = db.Column(db.String, nullable=False)    
+    todos = db.relationship("Todo", cascade = "delete")
+    
+   
 
     def __init__(self, **kwargs):
         """
         Initialize a post description
         """
-        self.id = kwargs.get("id")
-        self.title = kwargs.get("title")
-        self.finished = kwargs.get("finished", False)
-        self.task_id = kwargs.get("task_id")
+        self.title = kwargs.get("title", "")
+
 
     def serialize(self):
         """
         Serialize a post description
         """
+        todos = [
+            {
+                "id": todo.id,
+                "title": todo.title,
+                "due_date": todo.due_date
+            }
+            for todo in self.todos
+        ]
         return {
             "id": self.id,
             "title": self.title,
-            "finished": self.finished,
-            "task_id": self.task_id,
+            "todo": todos
+        }
+
+
+class Todo(db.Model):
+    """
+    Todo Class
+    """
+    __tablename__ = "todo"
+    id = db.Column(db.Integer, primary_key = True, auto_increment = True)
+    title = db.Column(db.String, nullable = False)
+    due_date = db.Column(db.Integer, nullable = False)
+    category_id = db.Column(db.Integer, db.ForeignKey("categories.id"), nullable = False)
+
+    def __init__(self, **kwargs):
+        """
+        Initialize a Todo object
+        """
+        self.title = kwargs.get("title", "")
+        self.due_date = kwargs.get("due_date", 0)
+        self.category_id = kwargs.get("category_id", 0)
+    
+    def serialize(self):
+        """
+        Serialize an Todo object
+        """
+        category = Category.query.filter_by(id=self.category_id).first()
+
+        return {
+        "id": self.id,
+        "title": self.title,
+        "due_date": self.due_date,
+        "category": category.title,
         }

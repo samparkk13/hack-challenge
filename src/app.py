@@ -3,11 +3,11 @@ import json
 from db import db
 from flask import Flask, request
 
-from db import Post
 from db import Category
+from db import Todo
 
 app = Flask(__name__)
-db_filename = "cms.db"
+db_filename = "todo.db"
 
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///%s" % db_filename
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
@@ -17,16 +17,17 @@ db.init_app(app)
 with app.app_context():
     db.create_all()
 
+
 # generalized response formats
 def success_response(data, code = 200):
-    return json.dumps(data), code
+    return json.dumps(data), code 
 
 def failure_response(message, code = 404):
     return json.dumps({"error": message}), code
 
 # --CATEGORY ROUTES ------------------------------------------------------------
 @app.route("/")
-@app.route("/api/categories/")
+@app.route("/api/categories/") 
 def get_categories():
     """
     Endpoint for getting all categories
@@ -57,7 +58,7 @@ def create_category():
 @app.route("/api/categories/<int:category_id>/", methods = ["DELETE"])
 def delete_category(category_id):
     """
-    Endpoint for deleting a course by its id
+    Endpoint for deleting a category by its id
     """
     category = Category.query.filter_by(id=category_id).first()
     if category is None:
@@ -67,72 +68,33 @@ def delete_category(category_id):
     return success_response(category.serialize())
 
 
-# --POST ROUTES ---------------------------------------------------------------
+# --TO-DO ROUTES ---------------------------------------------------------------
 
-@app.route("/api/posts/", methods = ["POST"])
-def create_post():
+@app.route("/api/todos/<int:category_id>/create/", methods = ["POST"])
+def create_todo_for_category(category_id):
     """
-    Endpoint for creating a to-do post
-    """
-    body = json.loads(request.data)
-    if body == None:
-        return failure_response("Empty request!", 400)
-    title = body.get("title")
-    dueDate = body.get("dueDate")
-    if (title == None or dueDate == None):
-        return failure_response("Incomplete request!", 400)
-    if (type(title) is not str or type(dueDate) is not str):
-        return failure_response("Wrong data type! Require strings", 400)
-    new_post = Post(title = title, dueDate = dueDate)
-    db.session.add(new_post)
-    db.session.commit()
-    return success_response(new_post.serialize(), 201)
-
-@app.route("/api/posts/<int:post_id>/")
-def get_post_by_id(post_id):
-    """
-    Endpoint for getting a specific Post by its id
-    """
-    post = Post.query.filter_by(id=post_id).first()
-    if post is None:
-        return failure_response("Post not found")
-    return success_response(post.serialize())
-
-@app.route("/api/posts/<int:post_id>/add/", methods = ["POST"])
-def add_post_to_category(category_id):
-    """
-    Endpoint for adding a user to a course
+    Endpoint for creating an new todo for a category
     """
     body = json.loads(request.data)
     if body is None:
         return failure_response("Empty request", 400)
-    user_id = body.get("user_id")
-    user_type = body.get("type")
-    if (user_id == None or user_type == None):
+    title = body.get("title")
+    due_date = body.get("due_date")
+    if (title == None or due_date == None):
         return failure_response("Incomplete request", 400)
-    if (type(user_id) is not int or type(user_type) is not str):
+    if (type(title) is not str or type(due_date) is not str):
         return failure_response("Wrong data type", 400)
-
+    
     category = Category.query.filter_by(id=category_id).first()
     if category is None:
-        return failure_response("category not found")
-    post = Post.query.filter_by(id=user_id).first()
-    if post is None:
-        return failure_response("post not found")
-    category.append(post)
+        return failure_response("Category not found")
+    new_todo = Todo(title = title, due_date = due_date, category_id = category_id)
+    db.session.add(new_todo)
     db.session.commit()
+    return success_response(new_todo.serialize(), 201)
+
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=8000, debug=True)
+
     
-    return success_response(category.serialize())
-
-@app.route("/api/posts/<int:post_id>/", methods = ["DELETE"])
-def delete_post(post_id):
-    """
-    Endpoint for deleting a post by its id
-    """
-    post = Post.query.filter_by(id=post_id).first()
-    if post is None:
-        return failure_response("Post not found")
-    db.session.delete(post)
-    db.session.commit()
-    return success_response(post.serialize())
-
