@@ -1,7 +1,8 @@
 # todo-task-application-backend
-Samuel Park and Ryan Park's final project for Intro to Backend Spring 2024. <br/>
+Contains the backend for To-do Task Application <br/>
 
-App Name: To Do-ie App Tagline: Get Your Work Done! <br/>
+App Name: To Do-ie App <br/>
+Tagline: Get Your Work Done! <br/>
 
 Description: You can add tasks, and scroll through your tasks, and click on tasks to display a detailed view, and you can remove tasks too! <br/>
 
