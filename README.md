@@ -6,6 +6,8 @@ Tagline: Get Your Work Done! <br/>
 
 Description: You can add tasks, and scroll through your tasks, and click on tasks to display a detailed view, and you can remove tasks too! <br/>
 
+<img width="290" alt="image" src="https://github.com/samparkk13/todo-task-application/assets/116518078/bc762823-db49-4803-9047-fad9a9b378a8">
+
 The Front-end for this application is linked below. <br/>
 https://github.com/kevin-won/hack<br/>
 <br/>
